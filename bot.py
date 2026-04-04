@@ -1,10 +1,13 @@
 import os
 import logging
 import tempfile
+import base64
+from datetime import datetime, timezone
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
 import anthropic
 from groq import Groq
+import httpx
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -49,6 +52,53 @@ SYSTEM_PROMPT = """You are Claude — Scott Bradley's personal AI assistant, ava
 - Conservation, storytelling, travel, Instagram growth, SOSA profitability are the recurring themes
 """
 
+GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN", "")
+GITHUB_REPO = os.environ.get("GITHUB_REPO", "scottb-sosa/sosa-telegram-bot")
+LOG_FILE_PATH = "logs/voice-notes.md"
+
+
+async def log_to_github(entry: str) -> None:
+    """Append a log entry to the notes log file in the GitHub repo."""
+    if not GITHUB_TOKEN:
+        logger.warning("GITHUB_TOKEN not set — skipping GitHub log")
+        return
+
+    api_url = f"https://api.github.com/repos/{GITHUB_REPO}/contents/{LOG_FILE_PATH}"
+    headers = {
+        "Authorization": f"token {GITHUB_TOKEN}",
+        "Accept": "application/vnd.github.v3+json",
+    }
+
+    async with httpx.AsyncClient() as client:
+        # Get current file content and SHA (needed to update)
+        response = await client.get(api_url, headers=headers)
+
+        if response.status_code == 200:
+            data = response.json()
+            current_content = base64.b64decode(data["content"]).decode("utf-8")
+            sha = data["sha"]
+        elif response.status_code == 404:
+            current_content = "# Scott's Notes Log\n\n"
+            sha = None
+        else:
+            logger.error(f"GitHub API error fetching log: {response.status_code} {response.text}")
+            return
+
+        new_content = current_content + entry
+        encoded = base64.b64encode(new_content.encode("utf-8")).decode("utf-8")
+
+        payload = {
+            "message": f"Bot log: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')}",
+            "content": encoded,
+        }
+        if sha:
+            payload["sha"] = sha
+
+        put_response = await client.put(api_url, headers=headers, json=payload)
+        if put_response.status_code not in (200, 201):
+            logger.error(f"GitHub API error writing log: {put_response.status_code} {put_response.text}")
+
+
 # Store conversation history per user (in memory — resets on bot restart)
 conversation_histories: dict[int, list] = {}
 
@@ -84,6 +134,9 @@ async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         # Show transcription so Scott can confirm it's right
         await update.message.reply_text(f"_{text}_", parse_mode="Markdown")
 
+        timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+        await log_to_github(f"---\n\n**{timestamp} — Voice Note**\n\n{text}\n\n")
+
         await process_message(update, context, text, user_id)
 
     except Exception as e:
@@ -93,7 +146,10 @@ async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
 async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user_id = update.message.from_user.id
-    await process_message(update, context, update.message.text, user_id)
+    text = update.message.text
+    timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+    await log_to_github(f"---\n\n**{timestamp} — Text Note**\n\n{text}\n\n")
+    await process_message(update, context, text, user_id)
 
 
 async def process_message(
