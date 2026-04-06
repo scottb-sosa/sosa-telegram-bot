@@ -40,3 +40,9 @@ Want to keep developing this or park it here for now and move on to other planni
 
 Afternoon Atlas!
 
+---
+
+**2026-04-06 09:45 UTC — Text Note**
+
+Setting up some agents so we can optimise flow!
+
