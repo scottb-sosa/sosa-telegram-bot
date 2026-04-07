@@ -57,6 +57,9 @@ GITHUB_REPO = os.environ.get("GITHUB_REPO", "scottb-sosa/sosa-telegram-bot")
 AGENTS_GITHUB_REPO = os.environ.get("AGENTS_GITHUB_REPO", "scottb-sosa/sosa-agents")
 LOG_FILE_PATH = "logs/voice-notes.md"
 
+ASANA_ACCESS_TOKEN = os.environ.get("ASANA_ACCESS_TOKEN", "")
+ASANA_PROJECT_GID = os.environ.get("ASANA_PROJECT_GID", "1213979577860064")
+
 
 async def log_to_github(entry: str) -> None:
     """Append a log entry to the notes log file in the GitHub repo."""
@@ -113,6 +116,62 @@ async def reply_long(update: Update, text: str) -> None:
             await update.message.reply_text(chunk, parse_mode="Markdown")
         except Exception:
             await update.message.reply_text(chunk)
+
+
+async def extract_subtasks(text: str) -> list[str]:
+    """Ask Claude to pull the key action items out of a response as a list."""
+    try:
+        client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
+        response = client.messages.create(
+            model="claude-haiku-4-5-20251001",
+            max_tokens=300,
+            system="Extract the key action items from the text. Return ONLY a JSON array of short strings (max 8 words each). No explanation. Example: [\"Edit tiger shark reel\", \"Post by Saturday\"]",
+            messages=[{"role": "user", "content": text}],
+        )
+        import json
+        raw = response.content[0].text.strip()
+        return json.loads(raw)
+    except Exception:
+        return []
+
+
+async def create_asana_task(name: str, notes: str, subtasks: list[str] = None) -> str | None:
+    """Create a task in Scott's AI Inbox project. Returns the task URL or None."""
+    if not ASANA_ACCESS_TOKEN:
+        return None
+
+    headers = {
+        "Authorization": f"Bearer {ASANA_ACCESS_TOKEN}",
+        "Content-Type": "application/json",
+    }
+
+    async with httpx.AsyncClient() as client:
+        # Create main task
+        response = await client.post(
+            "https://app.asana.com/api/1.0/tasks",
+            headers=headers,
+            json={"data": {
+                "name": name,
+                "notes": notes,
+                "projects": [ASANA_PROJECT_GID],
+                "assignee": "me",
+            }}
+        )
+        if response.status_code != 201:
+            logger.error(f"Asana task creation failed: {response.status_code} {response.text}")
+            return None
+
+        task_gid = response.json()["data"]["gid"]
+
+        # Create subtasks
+        for subtask in (subtasks or []):
+            await client.post(
+                f"https://app.asana.com/api/1.0/tasks/{task_gid}/subtasks",
+                headers=headers,
+                json={"data": {"name": subtask, "assignee": "me"}}
+            )
+
+        return f"https://app.asana.com/0/{ASANA_PROJECT_GID}/{task_gid}"
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -189,11 +248,11 @@ async def process_message(
         reply = response.content[0].text
         conversation_histories[user_id].append({"role": "assistant", "content": reply})
 
-        await update.message.reply_text(reply)
+        await reply_long(update, reply)
 
     except Exception as e:
         logger.error(f"Claude API error: {e}", exc_info=True)
-        await update.message.reply_text(f"Claude error: {e}")
+        await update.message.reply_text(f"Couldn't process that — try again or rephrase. ({type(e).__name__})")
 
 
 IDEAS_SYSTEM_PROMPT = """You are the Ideas Processor for Scott Bradley — Director of Storytelling at SOSA (Save Our Species Alliance).
@@ -258,6 +317,15 @@ async def handle_idea(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
         )
 
         await reply_long(update, result)
+
+        subtasks = await extract_subtasks(result)
+        task_url = await create_asana_task(
+            name=f"Idea: {raw_idea[:60]}",
+            notes=result,
+            subtasks=subtasks,
+        )
+        if task_url:
+            await update.message.reply_text(f"Saved to Asana: {task_url}")
 
     except Exception as e:
         logger.error(f"Idea processing error: {e}", exc_info=True)
@@ -337,6 +405,16 @@ async def handle_audit(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
         await reply_long(update, result)
 
+        week = datetime.now(timezone.utc).strftime("%d %b")
+        subtasks = await extract_subtasks(result)
+        task_url = await create_asana_task(
+            name=f"IG Audit — week of {week}",
+            notes=result,
+            subtasks=subtasks,
+        )
+        if task_url:
+            await update.message.reply_text(f"Audit saved to Asana: {task_url}")
+
     except Exception as e:
         logger.error(f"Audit error: {e}", exc_info=True)
         await update.message.reply_text(f"Error running audit: {e}")
@@ -407,6 +485,15 @@ async def handle_story(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         )
 
         await reply_long(update, result)
+
+        subtasks = await extract_subtasks(result)
+        task_url = await create_asana_task(
+            name=f"Story brief: {project[:60]}",
+            notes=result,
+            subtasks=subtasks,
+        )
+        if task_url:
+            await update.message.reply_text(f"Brief saved to Asana: {task_url}")
 
     except Exception as e:
         logger.error(f"Story brief error: {type(e).__name__}: {e}", exc_info=True)
