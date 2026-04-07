@@ -386,3 +386,65 @@ Okay this is really great to work with!!
 
 Now your questions… I’m shooting as a proper professional trip film but then there will also be a YouTube version with all the core plus the candid funny moments so the core film being like 8 mins and the full YT being 30mins ish.
 
+---
+
+**2026-04-07 04:26 UTC — Text Note**
+
+There will also be reels that go alongside, I just haven’t come up with any deliverables for that yet.
+
+There is no main character on this trip, more so characters (our guests) but yes I like the angle of following one
+
+You put
+
+
+Love this setup — the tiered content approach is smart. Core film → YouTube extended cut → Reels is a solid content ecosystem.
+
+A few quick thoughts and then a question:
+
+On the tiered structure
+The 8-min film being tight and cinematic while the 30-min YouTube breathes and gets candid — that's a great split. The extended cut basically becomes the "behind the conservation" version which YouTube audiences genuinely love.
+
+On the character thing
+Multiple guests is actually fine — but you still need *one anchor*. Not a main character in the Hollywood sense, just someone whose emotional journey you follow most closely. The others can have moments but one person gives the audience somewhere to attach.
+
+Could even be a contrast pair — like the most enthusiastic guest and the most skeptical one. That tension writes itself.
+
+The Reels gap
+Before you wrap planning — worth roughing out even 3-5 reel concepts now while you're thinking about the trip. Otherwise you'll be in the field reacting instead of capturing intentionally. Even loose ideas like "the moment someone sees X for the first time" or "a conservation myth debunked in 30 seconds."
+
+Quick question —
+Who are the guests on this trip? First-timers? Donors? General public? That shapes everything about which moments actually matter on camera.
+
+
+I put
+
+
+100% agree with all you said and yeah let’s do 3-5 strong reels, I like that plan
+
+The guests are a mix between first times and mainly repeat sosa guests who have been to Africa before so I’ll find one who hasn’t, she’ll be a great core!
+
+
+You put
+
+Love that — a first-timer is perfect. Her reactions will be genuine and unscripted, which is exactly what makes that kind of content land.
+
+A few quick thoughts to lock this in:
+
+For her specifically:
+- Brief her loosely — don't over-explain what you're filming, you want real moments not performed ones
+- Get her *before* moments too (nervous energy, anticipation) not just the wow reactions
+
+For the 3-5 reels structure, rough arc could be:
+1. The arrival — first impressions, stepping into Africa
+2. The moment — her first real wildlife encounter
+3. The shift — her saying something that shows she *gets it* now
+4. Behind the conservation — her actually doing something hands-on
+5. The goodbye — what she's taking home
+
+That arc basically tells the full guest journey in five pieces. Powerful for anyone considering booking.
+
+One thing to decide now: Are these going on SOSA's account, your account, or both? Because that changes how you frame your presence in them.
+
+
+So now take all of that and lay out it out properly for me to copy and make my own notes. Remember this is for the main 8 minute piece
+
