@@ -257,3 +257,9 @@ There is no main character on this trip, more so characters (our guests) but yes
 
 The guests are a mix between first times and mainly repeat sosa guests who have been to Africa before so I’ll find one who hasn’t, she’ll be a great core!
 
+---
+
+**2026-04-07 04:22 UTC — Text Note**
+
+These are mainly sosa assets, my own assets I will figure out a different time. Right now this is SOSA and NGO specific
+
