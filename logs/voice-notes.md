@@ -512,3 +512,9 @@ The invisible war. Most people have never seen what conservation looks like at 2
 - **Neglecting the sound recording.** In low-light conditions you'll be fighting your camera. Your audio will be cleaner than your video. Lav a ranger, run a shotgun mic, and capture ambient beds. In the edit, sound will save sequences where your footage is marginal.
 - **Forgetting to shoot yourself (for behind-the-scenes).** Set a GoPro on your
 
+---
+
+**2026-04-07 05:50 UTC — Text Note**
+
+Still loading?
+
