@@ -104,6 +104,14 @@ async def log_to_github(entry: str) -> None:
 conversation_histories: dict[int, list] = {}
 
 
+async def reply_long(update: Update, text: str, parse_mode: str = "Markdown") -> None:
+    """Send a long message in chunks to avoid Telegram's 4096 char limit."""
+    limit = 4000
+    chunks = [text[i:i+limit] for i in range(0, len(text), limit)]
+    for chunk in chunks:
+        await update.message.reply_text(chunk, parse_mode=parse_mode)
+
+
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text(
         "Hey Scott — ready to go. Send me a voice note or message and let's get into it."
@@ -246,7 +254,7 @@ async def handle_idea(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
             f"---\n\n**{timestamp} — IDEA**\n\nRaw: {raw_idea}\n\nProcessed:\n{result}\n\n"
         )
 
-        await update.message.reply_text(result, parse_mode="Markdown")
+        await reply_long(update, result)
 
     except Exception as e:
         logger.error(f"Idea processing error: {e}", exc_info=True)
@@ -324,7 +332,7 @@ async def handle_audit(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         # Also write to agents repo so Overseer can read it
         await write_to_agents_repo("01-performance-audit.md", result)
 
-        await update.message.reply_text(result, parse_mode="Markdown")
+        await reply_long(update, result)
 
     except Exception as e:
         logger.error(f"Audit error: {e}", exc_info=True)
@@ -395,7 +403,7 @@ async def handle_story(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
             f"---\n\n**{timestamp} — STORY BRIEF**\n\nProject: {project}\n\nBrief:\n{result}\n\n"
         )
 
-        await update.message.reply_text(result, parse_mode="Markdown")
+        await reply_long(update, result)
 
     except Exception as e:
         logger.error(f"Story brief error: {e}", exc_info=True)
