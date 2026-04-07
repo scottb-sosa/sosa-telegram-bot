@@ -54,6 +54,7 @@ SYSTEM_PROMPT = """You are Claude — Scott Bradley's personal AI assistant, ava
 
 GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN", "")
 GITHUB_REPO = os.environ.get("GITHUB_REPO", "scottb-sosa/sosa-telegram-bot")
+AGENTS_GITHUB_REPO = os.environ.get("AGENTS_GITHUB_REPO", "scottb-sosa/sosa-agents")
 LOG_FILE_PATH = "logs/voice-notes.md"
 
 
@@ -320,12 +321,113 @@ async def handle_audit(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         await log_to_github(
             f"---\n\n**{timestamp} — PERFORMANCE AUDIT**\n\nData: {raw_data}\n\nAnalysis:\n{result}\n\n"
         )
+        # Also write to agents repo so Overseer can read it
+        await write_to_agents_repo("01-performance-audit.md", result)
 
         await update.message.reply_text(result, parse_mode="Markdown")
 
     except Exception as e:
         logger.error(f"Audit error: {e}", exc_info=True)
         await update.message.reply_text(f"Error running audit: {e}")
+
+
+STORY_SYSTEM_PROMPT = """You are the Storytelling Techniques agent for Scott Bradley — wildlife videographer and Director of Storytelling at SOSA (Save Our Species Alliance).
+
+Scott is about to head into a specific field project and wants a solid research base before he gets there. His style is run-and-gun in the field but methodical in prep. He wants to arrive knowing the best cinematic and narrative approaches for the specific context — then put his own spin on them.
+
+Your job: give Scott a research-backed briefing on the best storytelling and filming techniques for the project he describes.
+
+Output format:
+
+*STORYTELLING BRIEF — [project name]*
+
+*The core narrative opportunity:*
+[What's the most compelling story angle for this specific project? What makes it emotionally interesting?]
+
+*Cinematic approach:*
+[Specific techniques — shot types, movement, pacing — that work for this environment/subject]
+
+*Narrative structure options:*
+[2-3 story structures that work for this type of content — with a one-line description of each]
+
+*The moments to hunt for:*
+[Specific types of shots, interactions, or events that will make the story. What should Scott be watching for?]
+
+*Common mistakes for this type of project:*
+[What do people get wrong when filming in this context — and how to avoid it]
+
+*Scott's angle (personal brand):*
+[How to frame this through his "Director of Storytelling / behind the camera" identity rather than as the main subject]
+
+*One sentence to remember in the field:*
+[A single guiding thought Scott can keep in his head when things get chaotic]
+
+Be specific to the project. Don't give generic filmmaking advice."""
+
+
+async def handle_story(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Research storytelling techniques for a specific upcoming project."""
+    project = " ".join(context.args) if context.args else ""
+
+    if not project:
+        await update.message.reply_text(
+            "Tell me the project after the command.\n\nExample:\n"
+            "`/story cheetah collaring Namibia Fahlo brand deal`\n"
+            "`/story anti-poaching patrol Manyoni Reserve night filming`",
+            parse_mode="Markdown"
+        )
+        return
+
+    await update.message.reply_text("Researching storytelling approaches...")
+
+    try:
+        client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
+        response = client.messages.create(
+            model="claude-opus-4-6",
+            max_tokens=1500,
+            system=STORY_SYSTEM_PROMPT,
+            messages=[{"role": "user", "content": f"Upcoming project: {project}"}],
+        )
+        result = response.content[0].text
+
+        timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+        await log_to_github(
+            f"---\n\n**{timestamp} — STORY BRIEF**\n\nProject: {project}\n\nBrief:\n{result}\n\n"
+        )
+
+        await update.message.reply_text(result, parse_mode="Markdown")
+
+    except Exception as e:
+        logger.error(f"Story brief error: {e}", exc_info=True)
+        await update.message.reply_text(f"Error generating brief: {e}")
+
+
+async def write_to_agents_repo(filename: str, content: str) -> None:
+    """Write a file to the sosa-agents GitHub repo (for Overseer to read)."""
+    if not GITHUB_TOKEN:
+        return
+
+    import base64
+    path = f"data/{filename}"
+    url = f"https://api.github.com/repos/{AGENTS_GITHUB_REPO}/contents/{path}"
+    headers = {
+        "Authorization": f"token {GITHUB_TOKEN}",
+        "Accept": "application/vnd.github.v3+json",
+    }
+
+    async with httpx.AsyncClient() as client:
+        response = await client.get(url, headers=headers)
+        sha = response.json().get("sha") if response.status_code == 200 else None
+
+        timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+        full_content = f"*Last updated: {timestamp}*\n\n{content}"
+        encoded = base64.b64encode(full_content.encode()).decode()
+
+        payload = {"message": f"Agent output: {filename} — {timestamp}", "content": encoded}
+        if sha:
+            payload["sha"] = sha
+
+        await client.put(url, headers=headers, json=payload)
 
 
 async def clear(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -342,6 +444,7 @@ async def main() -> None:
     app.add_handler(CommandHandler("clear", clear))
     app.add_handler(CommandHandler("idea", handle_idea))
     app.add_handler(CommandHandler("audit", handle_audit))
+    app.add_handler(CommandHandler("story", handle_story))
     app.add_handler(MessageHandler(filters.VOICE, handle_voice))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text))
 
