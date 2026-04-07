@@ -269,3 +269,12 @@ These are mainly sosa assets, my own assets I will figure out a different time. 
 
 Can you just collect all the data you just mentioned and put it into one text so story, script, reels etc so I can copy and then make my own notes and come back to you
 
+---
+
+**2026-04-07 04:24 UTC — Text Note**
+
+Wait, where did the hippo come from?
+
+
+I meant the actual main 8 minute story piece that we were discussing, after you reviewed the ChatGPT one and gave your own!
+
