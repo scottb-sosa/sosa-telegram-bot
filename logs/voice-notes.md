@@ -249,3 +249,11 @@ There will also be reels that go alongside, I just haven’t come up with any de
 
 There is no main character on this trip, more so characters (our guests) but yes I like the angle of following one
 
+---
+
+**2026-04-07 04:21 UTC — Text Note**
+
+100% agree with all you said and yeah let’s do 3-5 strong reels, I like that plan
+
+The guests are a mix between first times and mainly repeat sosa guests who have been to Africa before so I’ll find one who hasn’t, she’ll be a great core!
+
