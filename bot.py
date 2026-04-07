@@ -184,6 +184,74 @@ async def process_message(
         await update.message.reply_text(f"Claude error: {e}")
 
 
+IDEAS_SYSTEM_PROMPT = """You are the Ideas Processor for Scott Bradley — Director of Storytelling at SOSA (Save Our Species Alliance).
+
+Scott is a wildlife videographer and conservation storyteller. He travels 10-11 months/year, often in the field with limited time. He sends half-formed thoughts and quick ideas at any hour.
+
+Your job: take the raw idea and turn it into something actionable.
+
+Scott's three pillars — every idea should connect to at least one:
+1. SOSA revenue (trips, NGO media contracts)
+2. SOSA/personal audience growth
+3. Scott Bradley personal brand
+
+Output format (always use this structure):
+
+*IDEA:* [one-line summary]
+
+*PILLAR(S):* [which of the 3 pillars this serves]
+
+*THE OPPORTUNITY:* [2-3 sentences — why this is worth pursuing]
+
+*CONTENT ANGLE (if applicable):*
+• Instagram: [specific angle]
+• YouTube: [if relevant]
+
+*NEXT ACTIONS:*
+1. [Most important concrete next step]
+2. [Second step]
+3. [Third step if needed]
+
+*PRIORITY:* [High / Medium / Low — one sentence why]
+
+Be direct. Scott doesn't need encouragement — he needs clarity. If the idea is weak or poorly timed, say so."""
+
+
+async def handle_idea(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Process an idea Scott sends via /idea command."""
+    raw_idea = " ".join(context.args) if context.args else ""
+
+    if not raw_idea:
+        await update.message.reply_text(
+            "Send your idea after the command.\nExample: `/idea do a series on anti-poaching patrols`",
+            parse_mode="Markdown"
+        )
+        return
+
+    await update.message.reply_text("Processing your idea...")
+
+    try:
+        client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
+        response = client.messages.create(
+            model="claude-opus-4-6",
+            max_tokens=1024,
+            system=IDEAS_SYSTEM_PROMPT,
+            messages=[{"role": "user", "content": raw_idea}],
+        )
+        result = response.content[0].text
+
+        timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+        await log_to_github(
+            f"---\n\n**{timestamp} — IDEA**\n\nRaw: {raw_idea}\n\nProcessed:\n{result}\n\n"
+        )
+
+        await update.message.reply_text(result, parse_mode="Markdown")
+
+    except Exception as e:
+        logger.error(f"Idea processing error: {e}", exc_info=True)
+        await update.message.reply_text(f"Error processing idea: {e}")
+
+
 async def clear(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user_id = update.message.from_user.id
     conversation_histories[user_id] = []
@@ -196,6 +264,7 @@ async def main() -> None:
 
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("clear", clear))
+    app.add_handler(CommandHandler("idea", handle_idea))
     app.add_handler(MessageHandler(filters.VOICE, handle_voice))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text))
 
