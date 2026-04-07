@@ -104,12 +104,15 @@ async def log_to_github(entry: str) -> None:
 conversation_histories: dict[int, list] = {}
 
 
-async def reply_long(update: Update, text: str, parse_mode: str = "Markdown") -> None:
-    """Send a long message in chunks to avoid Telegram's 4096 char limit."""
+async def reply_long(update: Update, text: str) -> None:
+    """Send a long message in chunks. Falls back to plain text if Markdown parsing fails."""
     limit = 4000
     chunks = [text[i:i+limit] for i in range(0, len(text), limit)]
     for chunk in chunks:
-        await update.message.reply_text(chunk, parse_mode=parse_mode)
+        try:
+            await update.message.reply_text(chunk, parse_mode="Markdown")
+        except Exception:
+            await update.message.reply_text(chunk)
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -406,8 +409,8 @@ async def handle_story(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         await reply_long(update, result)
 
     except Exception as e:
-        logger.error(f"Story brief error: {e}", exc_info=True)
-        await update.message.reply_text(f"Error generating brief: {e}")
+        logger.error(f"Story brief error: {type(e).__name__}: {e}", exc_info=True)
+        await update.message.reply_text(f"Error generating brief: {type(e).__name__}: {e}")
 
 
 async def write_to_agents_repo(filename: str, content: str) -> None:
