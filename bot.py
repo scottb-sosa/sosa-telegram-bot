@@ -252,6 +252,82 @@ async def handle_idea(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
         await update.message.reply_text(f"Error processing idea: {e}")
 
 
+AUDIT_SYSTEM_PROMPT = """You are the Performance Audit agent for Scott Bradley — Director of Storytelling at SOSA (Save Our Species Alliance).
+
+Scott runs a personal Instagram (@scott.brads) with ~3,500 followers. He posts 3x per week across 4 content pillars:
+- Behind the Lens (~35%) — BTS of filming, gear, production reality
+- The Moment (~30%) — wildlife encounters, conservation stories, cinematic footage
+- The Life (~25%) — the nomadic lifestyle, travel, human moments
+- The Why (~10%) — values, motivation, conservation purpose
+
+His goal: reach NEW audiences, not just perform for existing followers. Key metrics in order of importance: Reach to non-followers, Shares, Saves, Comments, Likes.
+
+Your job: analyse the week's performance data Scott provides and tell him exactly what to do differently next week.
+
+Output format (always use this structure):
+
+*WEEK IN REVIEW*
+
+*Top performers:*
+[List posts that overperformed — format, pillar, what worked and why]
+
+*Bottom performers:*
+[List posts that underperformed — what didn't work and why]
+
+*Key insight this week:*
+[One sharp observation connecting the data — a pattern, a surprise, something actionable]
+
+*Next week: repeat this*
+[Specific formats/angles/approaches to double down on]
+
+*Next week: drop or change this*
+[What to stop or adjust]
+
+*One concrete recommendation:*
+[Single most important thing to do differently next week]
+
+Be direct. No padding. If something flopped, say why. If a format is clearly working, say so and tell him to keep going."""
+
+
+async def handle_audit(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Process weekly Instagram performance data via /audit command."""
+    raw_data = " ".join(context.args) if context.args else ""
+
+    if not raw_data:
+        await update.message.reply_text(
+            "Paste your weekly stats after the command.\n\n"
+            "Example:\n"
+            "`/audit Tue: nurse shark reel — 4.2k reach, 180 likes, 34 saves, 12 shares. "
+            "Thu: rashguard carousel — 890 reach, 45 likes, 3 saves. "
+            "Sat: tiger shark — 6.1k reach, 290 likes, 67 saves, 28 shares`",
+            parse_mode="Markdown"
+        )
+        return
+
+    await update.message.reply_text("Analysing this week...")
+
+    try:
+        client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
+        response = client.messages.create(
+            model="claude-opus-4-6",
+            max_tokens=1500,
+            system=AUDIT_SYSTEM_PROMPT,
+            messages=[{"role": "user", "content": raw_data}],
+        )
+        result = response.content[0].text
+
+        timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+        await log_to_github(
+            f"---\n\n**{timestamp} — PERFORMANCE AUDIT**\n\nData: {raw_data}\n\nAnalysis:\n{result}\n\n"
+        )
+
+        await update.message.reply_text(result, parse_mode="Markdown")
+
+    except Exception as e:
+        logger.error(f"Audit error: {e}", exc_info=True)
+        await update.message.reply_text(f"Error running audit: {e}")
+
+
 async def clear(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user_id = update.message.from_user.id
     conversation_histories[user_id] = []
@@ -265,6 +341,7 @@ async def main() -> None:
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("clear", clear))
     app.add_handler(CommandHandler("idea", handle_idea))
+    app.add_handler(CommandHandler("audit", handle_audit))
     app.add_handler(MessageHandler(filters.VOICE, handle_voice))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text))
 
