@@ -263,3 +263,9 @@ The guests are a mix between first times and mainly repeat sosa guests who have 
 
 These are mainly sosa assets, my own assets I will figure out a different time. Right now this is SOSA and NGO specific
 
+---
+
+**2026-04-07 04:23 UTC — Text Note**
+
+Can you just collect all the data you just mentioned and put it into one text so story, script, reels etc so I can copy and then make my own notes and come back to you
+
