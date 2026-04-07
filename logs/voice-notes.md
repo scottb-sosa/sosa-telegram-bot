@@ -237,3 +237,15 @@ This one has serious potential to be your strongest SOSA piece yet.
 
 Okay now I want you to go through it and let me know what you think and also give your own version of the story with the information provided and what ChatGPT came up with
 
+---
+
+**2026-04-07 04:18 UTC — Text Note**
+
+Okay this is really great to work with!!
+
+Now your questions… I’m shooting as a proper professional trip film but then there will also be a YouTube version with all the core plus the candid funny moments so the core film being like 8 mins and the full YT being 30mins ish.
+
+There will also be reels that go alongside, I just haven’t come up with any deliverables for that yet.
+
+There is no main character on this trip, more so characters (our guests) but yes I like the angle of following one
+
