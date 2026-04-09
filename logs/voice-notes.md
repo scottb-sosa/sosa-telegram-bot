@@ -844,3 +844,31 @@ Processed:
 
 *PRIORITY:* **High** — This is a direct deliverable for an NGO partner, it's a format that could become a repeatable template (every donated asset gets this treatment), and if Toyota or any fleet donor ever sees this, it's a warm intro to a sponsorship conversation. The vulture tracking angle alone is gold content even outside this piece. Don't let this be B-roll you grab casually — treat it as a structured shoot.
 
+---
+
+**2026-04-09 16:11 UTC — IDEA**
+
+Raw: we are having an 18 month old rhino orphan calf coming into the game reserve after the mother died but not from poaching which is great but that rhino will be arriving and we’ll be filming it so need to capture that moment and story, maybe a drone of it coming in and then handheld for the moment
+
+Processed:
+
+
+*IDEA:* Document the arrival of an 18-month-old orphan rhino calf to the game reserve
+
+*PILLAR(S):* SOSA/personal audience growth + Scott Bradley personal brand
+
+*THE OPPORTUNITY:* Orphan rhino content with a non-poaching backstory is rare and actually refreshing — it removes the anger fatigue audiences feel and replaces it with pure empathy and hope. This is a "new beginning" narrative, not a tragedy piece, which widens your audience reach significantly. High emotional payload, high shareability, and positions you as someone embedded in real conservation ops, not just filming from the outside.
+
+*CONTENT ANGLE:*
+• **Instagram:** Reels-first. Lead with the drone wide of the vehicle/crate arriving into the reserve — that sense of scale and landscape — then cut to tight handheld of the calf's first moments out. Text overlay hook: *"This rhino lost her mother. Today she gets a second chance."* Keep the non-poaching detail in the caption, not the hook — let people assume, then subvert. A carousel post the next day with BTS stills and the backstory works as a follow-up.
+• **YouTube:** This is a short doc or a strong scene in a longer reserve episode. Structure: context of the orphan situation → anticipation of arrival → the moment → first hours on the reserve. Voiceover from you or the reserve team. Don't rush this to YouTube — let it breathe and edit properly.
+
+*NEXT ACTIONS:*
+1. **Shot list now, before the day gets chaotic.** Lock these shots: (a) drone wide of vehicle approaching on reserve road, (b) drone overhead of crate offload, (c) handheld tight on crate door opening — the reveal moment, (d) the calf's first steps out, (e) reaction shots from the team on the ground, (f) handheld follow of the calf exploring. Have batteries charged and cards cleared for both drone and handheld before it arrives.
+2. **Get audio.** Bring a lav or shotgun mic — the crate sounds, team radio chatter, the calf's breathing/footsteps. This is what separates cinematic from phone-quality. Even just wild audio track running on a separate recorder.
+3. **Capture a short interview or voice note from whoever is managing the translocation** — the vet, reserve manager, whoever. Even 90 seconds of them explaining why this calf matters and what happens next. That's your voiceover or caption backbone.
+
+*PRIORITY:* **High — this is a one-take moment.** You don't get a second arrival. Prep the shot list and gear today. Post the Reel within 24-48 hours while it's fresh. Save the longer edit for YouTube.
+
+One flag: don't over-drone it. The money shot is handheld — that calf stepping out. The drone sets the scene, the handheld delivers the emotion. Know when to put the controller down and pick up the camera.
+
