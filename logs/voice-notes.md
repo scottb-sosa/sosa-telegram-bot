@@ -797,3 +797,9 @@ The invisible war. Conservation's most critical work happens when no one is watc
 - **Trying to film everything.** At night, with limited gear, you need to pick your moments. Running the camera constantly burns batteries, fills cards, and means you're chimping your screen instead of reading the situation. Be selective. Quality of moments over quantity.
 - **Ignoring
 
+---
+
+**2026-04-09 05:14 UTC — Text Note**
+
+Morning Atlas!
+
