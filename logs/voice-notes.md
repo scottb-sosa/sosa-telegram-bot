@@ -872,3 +872,9 @@ Processed:
 
 One flag: don't over-drone it. The money shot is handheld — that calf stepping out. The drone sets the scene, the handheld delivers the emotion. Know when to put the controller down and pick up the camera.
 
+---
+
+**2026-04-09 16:12 UTC — Text Note**
+
+Yeah no I agree with the flag, the drone is just to capture the vehicle arriving and then leave to hover whilst I rip handheld
+
