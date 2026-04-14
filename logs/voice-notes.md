@@ -878,3 +878,9 @@ One flag: don't over-drone it. The money shot is handheld — that calf stepping
 
 Yeah no I agree with the flag, the drone is just to capture the vehicle arriving and then leave to hover whilst I rip handheld
 
+---
+
+**2026-04-14 14:20 UTC — Text Note**
+
+You know my tv sizzle idea I was talking about? The one at Manyoni
+
