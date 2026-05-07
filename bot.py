@@ -606,16 +606,19 @@ async def handle_intel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
 WARMUP_MESSAGE = """🔥 *POST IN 2 HOURS — Warm-up time*
 
-Before you post today:
+3 short bursts across the next 2 hours. Not a solid block — dip in, work, dip in.
 
-1️⃣ Reply to \~20 recent comments on your last post
-2️⃣ Interact with \~10 stories in your feed
-3️⃣ Like + comment on \~10 similar creator posts
-4️⃣ 10 mins on Explore — like, comment, save
-5️⃣ Post a story first (BTS, poll, anything)
-6️⃣ Drop your feed post at 5pm 🎯
+*Burst 1 — now (10 mins):*
+• Check recent posts for any missed comments
+• Interact with \~10 stories in your feed
 
-\~30 mins. Do it now."""
+*Burst 2 — \~4pm (10 mins):*
+• Like + comment on \~10 similar creator posts
+• 10 mins on Explore — like, comment, save
+
+*Burst 3 — \~4:45pm:*
+• Post a story (BTS, poll, anything)
+• Drop your feed post at 5pm 🎯"""
 
 
 async def send_warmup_reminder(context) -> None:
