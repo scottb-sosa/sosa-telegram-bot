@@ -610,13 +610,13 @@ WARMUP_MESSAGE = """🔥 *POST IN 2 HOURS — Warm-up time*
 
 *Burst 1 — now (10 mins):*
 • Check recent posts for any missed comments
-• Interact with \~10 stories in your feed
+• Interact with ~10 stories in your feed
 
-*Burst 2 — \~4pm (10 mins):*
-• Like + comment on \~10 similar creator posts
+*Burst 2 — ~4pm (10 mins):*
+• Like + comment on ~10 similar creator posts
 • 10 mins on Explore — like, comment, save
 
-*Burst 3 — \~4:45pm:*
+*Burst 3 — ~4:45pm:*
 • Post a story (BTS, poll, anything)
 • Drop your feed post at 5pm 🎯"""
 
