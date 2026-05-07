@@ -59,6 +59,7 @@ LOG_FILE_PATH = "logs/voice-notes.md"
 
 ASANA_ACCESS_TOKEN = os.environ.get("ASANA_ACCESS_TOKEN", "")
 ASANA_PROJECT_GID = os.environ.get("ASANA_PROJECT_GID", "1213979577860064")
+TAVILY_API_KEY = os.environ.get("TAVILY_API_KEY", "")
 
 
 async def log_to_github(entry: str) -> None:
@@ -500,6 +501,108 @@ async def handle_story(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         await update.message.reply_text(f"Error generating brief: {type(e).__name__}: {e}")
 
 
+INTEL_SYSTEM_PROMPT = """You are the Strategy Intelligence agent for Scott Bradley — wildlife videographer growing @scott.brads (3,500 followers, posts Mon/Wed/Fri at 5pm UK).
+
+Your job: hunt for NEW tactical techniques that creators are discovering and sharing right now. Not broad Instagram strategy — specific, repeatable actions that move the needle. The value is finding things BEFORE they go mainstream.
+
+Context: Scott's main gap is shares/sends (the #1 distribution signal). Carousels are outperforming reels for shares in his niche. He just learned about an engagement warm-up technique (interact with similar creators 1-2 hours before posting) that drove massive results for a teammate.
+
+Output format (mobile-friendly, he's on his phone):
+
+*🔍 STRATEGY INTEL — [date]*
+
+*TACTICS TO TRY THIS WEEK:*
+
+(Up to 3 tactics)
+— *[Name]*
+What: [exactly what to do]
+Why: [the algorithm logic]
+Effort: Low/Medium/High
+Try before: [Mon/Wed/Fri]
+
+---
+*WHAT'S LOSING TRACTION:*
+[1-2 things to deprioritise]
+
+---
+*THIS WEEK'S #1 TACTIC:*
+[Most important thing to try — which post, what to do, when]
+
+Flag if anything is speculative or from a single source."""
+
+
+async def _tavily_search(query: str, max_results: int = 3) -> str:
+    """Search via Tavily and return formatted results."""
+    if not TAVILY_API_KEY:
+        return f"[Tavily search unavailable — TAVILY_API_KEY not set in bot env vars]"
+    try:
+        async with httpx.AsyncClient(timeout=15) as client:
+            response = await client.post(
+                "https://api.tavily.com/search",
+                json={
+                    "api_key": TAVILY_API_KEY,
+                    "query": query,
+                    "max_results": max_results,
+                    "search_depth": "basic",
+                    "include_answer": True,
+                }
+            )
+            response.raise_for_status()
+            data = response.json()
+
+        lines = []
+        if data.get("answer"):
+            lines.append(f"SUMMARY: {data['answer']}")
+        for r in data.get("results", []):
+            lines.append(f"SOURCE: {r.get('title', '')}\n{r.get('content', '')}")
+        return "\n---\n".join(lines)
+    except Exception as e:
+        return f"[Search error: {e}]"
+
+
+async def handle_intel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Run Strategy Intelligence agent on-demand via /intel command."""
+    await update.message.reply_text("Hunting for new tactics... give me a minute.")
+
+    queries = [
+        "Instagram engagement before posting strategy creators 2026",
+        "Instagram small account growth tactic working right now May 2026",
+        "Instagram carousel shares reach growth strategy 2026",
+        "new Instagram feature creators using algorithm boost 2026",
+        "instagram warm up engagement hack creator accounts 2026",
+        "what working instagram algorithm right now small creators 2026",
+    ]
+
+    try:
+        # Run searches concurrently
+        import asyncio
+        search_results = await asyncio.gather(*[_tavily_search(q) for q in queries])
+        combined = "\n\n===\n\n".join(search_results)
+
+        current_date = datetime.now(timezone.utc).strftime("%B %d, %Y")
+
+        client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
+        response = client.messages.create(
+            model="claude-opus-4-6",
+            max_tokens=1500,
+            system=INTEL_SYSTEM_PROMPT,
+            messages=[{"role": "user", "content": f"Today: {current_date}\n\nSearch results:\n\n{combined}"}],
+        )
+        result = response.content[0].text
+
+        timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+        await log_to_github(
+            f"---\n\n**{timestamp} — STRATEGY INTEL (/intel)**\n\n{result}\n\n"
+        )
+        await write_to_agents_repo("09-strategy-intelligence.md", result)
+
+        await reply_long(update, result)
+
+    except Exception as e:
+        logger.error(f"Intel error: {e}", exc_info=True)
+        await update.message.reply_text(f"Error running intel: {type(e).__name__}: {e}")
+
+
 async def write_to_agents_repo(filename: str, content: str) -> None:
     """Write a file to the sosa-agents GitHub repo (for Overseer to read)."""
     if not GITHUB_TOKEN:
@@ -543,6 +646,7 @@ async def main() -> None:
     app.add_handler(CommandHandler("idea", handle_idea))
     app.add_handler(CommandHandler("audit", handle_audit))
     app.add_handler(CommandHandler("story", handle_story))
+    app.add_handler(CommandHandler("intel", handle_intel))
     app.add_handler(MessageHandler(filters.VOICE, handle_voice))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text))
 
