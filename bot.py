@@ -60,6 +60,7 @@ LOG_FILE_PATH = "logs/voice-notes.md"
 ASANA_ACCESS_TOKEN = os.environ.get("ASANA_ACCESS_TOKEN", "")
 ASANA_PROJECT_GID = os.environ.get("ASANA_PROJECT_GID", "1213979577860064")
 TAVILY_API_KEY = os.environ.get("TAVILY_API_KEY", "")
+SCOTT_CHAT_ID = int(os.environ.get("SCOTT_CHAT_ID", "0"))
 
 
 async def log_to_github(entry: str) -> None:
@@ -603,6 +604,38 @@ async def handle_intel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         await update.message.reply_text(f"Error running intel: {type(e).__name__}: {e}")
 
 
+WARMUP_MESSAGE = """🔥 *POST IN 2 HOURS — Warm-up time*
+
+Before you post today:
+
+1️⃣ Reply to \~20 recent comments on your last post
+2️⃣ Interact with \~10 stories in your feed
+3️⃣ Like + comment on \~10 similar creator posts
+4️⃣ 10 mins on Explore — like, comment, save
+5️⃣ Post a story first (BTS, poll, anything)
+6️⃣ Drop your feed post at 5pm 🎯
+
+\~30 mins. Do it now."""
+
+
+async def send_warmup_reminder(context) -> None:
+    """Scheduled warm-up reminder — fires Mon/Wed/Fri at 3pm UK."""
+    if SCOTT_CHAT_ID:
+        try:
+            await context.bot.send_message(
+                chat_id=SCOTT_CHAT_ID,
+                text=WARMUP_MESSAGE,
+                parse_mode="Markdown"
+            )
+        except Exception as e:
+            logger.error(f"Warm-up reminder failed: {e}")
+
+
+async def handle_warmup(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Send the warm-up checklist on demand via /warmup."""
+    await update.message.reply_text(WARMUP_MESSAGE, parse_mode="Markdown")
+
+
 async def write_to_agents_repo(filename: str, content: str) -> None:
     """Write a file to the sosa-agents GitHub repo (for Overseer to read)."""
     if not GITHUB_TOKEN:
@@ -647,6 +680,16 @@ async def main() -> None:
     app.add_handler(CommandHandler("audit", handle_audit))
     app.add_handler(CommandHandler("story", handle_story))
     app.add_handler(CommandHandler("intel", handle_intel))
+    app.add_handler(CommandHandler("warmup", handle_warmup))
+
+    # Warm-up reminder: Mon/Wed/Fri at 3pm UK (handles BST/GMT automatically)
+    if SCOTT_CHAT_ID:
+        from zoneinfo import ZoneInfo
+        from datetime import time as dt_time
+        uk_3pm = dt_time(15, 0, tzinfo=ZoneInfo("Europe/London"))
+        for day in (1, 3, 5):  # Mon=1, Wed=3, Fri=5
+            app.job_queue.run_daily(send_warmup_reminder, time=uk_3pm, days=(day,))
+        logger.info("Warm-up reminders scheduled: Mon/Wed/Fri 3pm UK")
     app.add_handler(MessageHandler(filters.VOICE, handle_voice))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text))
 
