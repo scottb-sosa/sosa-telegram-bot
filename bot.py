@@ -557,8 +557,11 @@ async def _tavily_search(query: str, max_results: int = 3) -> str:
         async with httpx.AsyncClient(timeout=15) as client:
             response = await client.post(
                 "https://api.tavily.com/search",
+                headers={
+                    "Authorization": f"Bearer {TAVILY_API_KEY}",
+                    "Content-Type": "application/json",
+                },
                 json={
-                    "api_key": TAVILY_API_KEY,
                     "query": query,
                     "max_results": max_results,
                     "search_depth": "basic",
