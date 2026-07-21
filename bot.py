@@ -75,7 +75,6 @@ LOG_FILE_PATH = "logs/voice-notes.md"
 
 ASANA_ACCESS_TOKEN = os.environ.get("ASANA_ACCESS_TOKEN", "")
 ASANA_PROJECT_GID = os.environ.get("ASANA_PROJECT_GID", "1213979577860064")
-TAVILY_API_KEY = os.environ.get("TAVILY_API_KEY", "")
 SCOTT_CHAT_ID = int(os.environ.get("SCOTT_CHAT_ID", "0"))
 
 
@@ -549,67 +548,35 @@ Try before: [Mon/Wed/Fri]
 Flag if anything is speculative or from a single source."""
 
 
-async def _tavily_search(query: str, max_results: int = 3) -> str:
-    """Search via Tavily and return formatted results."""
-    if not TAVILY_API_KEY:
-        return f"[Tavily search unavailable — TAVILY_API_KEY not set in bot env vars]"
-    try:
-        async with httpx.AsyncClient(timeout=15) as client:
-            response = await client.post(
-                "https://api.tavily.com/search",
-                headers={
-                    "Authorization": f"Bearer {TAVILY_API_KEY}",
-                    "Content-Type": "application/json",
-                },
-                json={
-                    "query": query,
-                    "max_results": max_results,
-                    "search_depth": "basic",
-                    "include_answer": True,
-                }
-            )
-            response.raise_for_status()
-            data = response.json()
-
-        lines = []
-        if data.get("answer"):
-            lines.append(f"SUMMARY: {data['answer']}")
-        for r in data.get("results", []):
-            lines.append(f"SOURCE: {r.get('title', '')}\n{r.get('content', '')}")
-        return "\n---\n".join(lines)
-    except Exception as e:
-        return f"[Search error: {e}]"
-
-
 async def handle_intel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Run Strategy Intelligence agent on-demand via /intel command."""
     await update.message.reply_text("Hunting for new tactics... give me a minute.")
 
-    queries = [
-        "Instagram engagement before posting strategy creators 2026",
-        "Instagram small account growth tactic working right now May 2026",
+    topics = [
+        "Instagram engagement before posting strategy creators, this month",
+        "Instagram small account growth tactic working right now",
         "Instagram carousel shares reach growth strategy 2026",
         "new Instagram feature creators using algorithm boost 2026",
         "instagram warm up engagement hack creator accounts 2026",
-        "what working instagram algorithm right now small creators 2026",
+        "what's working on instagram algorithm right now for small creators",
     ]
+    topic_list = "\n".join(f"- {t}" for t in topics)
 
     try:
-        # Run searches concurrently
-        import asyncio
-        search_results = await asyncio.gather(*[_tavily_search(q) for q in queries])
-        combined = "\n\n===\n\n".join(search_results)
-
         current_date = datetime.now(timezone.utc).strftime("%B %d, %Y")
 
         client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
         response = client.messages.create(
             model="claude-opus-4-6",
-            max_tokens=1500,
+            max_tokens=4000,
             system=INTEL_SYSTEM_PROMPT,
-            messages=[{"role": "user", "content": f"Today: {current_date}\n\nSearch results:\n\n{combined}"}],
+            tools=[{"type": "web_search_20260209", "name": "web_search"}],
+            messages=[{
+                "role": "user",
+                "content": f"Today: {current_date}\n\nSearch the web for the newest tactics on these topics, then write the report:\n\n{topic_list}",
+            }],
         )
-        result = response.content[0].text
+        result = "\n".join(block.text for block in response.content if block.type == "text")
 
         timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
         await log_to_github(
